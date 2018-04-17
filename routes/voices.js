@@ -23,30 +23,26 @@ var server = net.createServer(function(socket) {
 
     socket.on('data', function(data) {
         console.log('Data is comming!!');
-        
-        
-        // fs.stat("/record.3GPP", function(err,data) {
-        //     if(err) throw err;
-        //     console.log(stats);
-        //     console.log('isFile: ' + stats.isFile());
-        // });
+
+        try{
+            fs.writeFileSync('test.3gpp', data, 'utf-8');
+            console.log('Successed!!');
+        }catch(e){
+            console.log(e);
+        }
     });
 
     socket.on('close', function() {
-        console.log('client disconnected');
-
-        
+        console.log('-------client disconnected-------');
     });
-
-    socket.write('welcome to server');
 });
 
 server.on('error', function() {
     console.log('err'+err);
 });
 
-server.listen(port, function() {
-    console.log('서버 start');
+server.listen(9206, function() {
+    console.log('-------Server start-------');
 });
 
 router.get('/', function(req, res) {
