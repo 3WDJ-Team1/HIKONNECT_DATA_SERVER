@@ -7,6 +7,13 @@
 var app = require('../app');
 var debug = require('debug')('hikonnect-data-server:server');
 var http = require('http');
+var cors = require('cors');
+
+
+/**
+ * Enable CORS requests.
+ */
+app.use(cors());
 
 /**
  * Get port from environment and store in Express.
