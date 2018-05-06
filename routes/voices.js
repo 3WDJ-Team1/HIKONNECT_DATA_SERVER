@@ -37,8 +37,8 @@ var server = net.createServer(function(socket) {
     });
 });
 
-server.on('error', function() {
-    console.log('err'+err);
+server.on('error', function(err) {
+    console.log('err' + err);
 });
 
 server.listen(9206, function() {
