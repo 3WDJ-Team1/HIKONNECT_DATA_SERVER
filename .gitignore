@@ -2,3 +2,4 @@ node_modules
 public
 nohup.out
 npm-debug.log
+.env

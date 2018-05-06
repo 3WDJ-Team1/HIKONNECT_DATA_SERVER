@@ -79,7 +79,6 @@ router.get('/query', function(req, res, next) {
 });
 
 router.get('/getCurrentFID', function(req, res, next) {
-
     if(req.query.length != 4) {
         return res.sendStatus(400);
     }
