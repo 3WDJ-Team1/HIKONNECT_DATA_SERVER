@@ -26,6 +26,7 @@ router.post('/lm_pic', upload.single('location'), function (req, res) {
     res.send('Success');
 });
 
+
 router.post('/radio', upload.single('radio'), function (req, res) {
     res.send('Success');
 });
