@@ -27,6 +27,63 @@ router.get('/', function(req, res, next) {
  * @return  null
  *          HTTP Response = String    The String is formatted by JSON syntax.
  */
+// router.get('/paths/:mntCode/:FID?', function(req, res, next) {
+//   // TM Projectrion Setting (Korean)
+//   const KTMProjection = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
+//   // GRS80 Projection Setting
+//   const EPSG4019 = '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs';
+
+//   var mntCode = req.params.mntCode;
+//   var FID = req.params.FID;
+
+//   // Hiking paths directory in local
+//   var coordinateFilePath = `public/mountain/${mntCode}_geojson`;
+//   // Hiking path files path in local
+//   var coordinateFiles = fs.readdirSync(coordinateFilePath);
+  
+//   var mntFileName;
+  
+//   for (let idx in coordinateFiles) {
+//     let fileName = coordinateFiles[idx];
+
+//     if (!fileName.match(/^PMNTN_SPOT_/)) {
+//       mntFileName = fileName;    
+//     }
+//   }
+
+//   var coordinateFile = fs.readFileSync(`${coordinateFilePath}/${mntFileName}`, 'utf8');
+
+//   // Hiking paths in file
+//   var mntPaths = JSON.parse(coordinateFile)['features'];
+
+//   for (let idx in mntPaths) {
+//     if (FID != undefined && FID != idx) continue;
+
+//     let routePaths = mntPaths[idx]['geometry']['paths'][0];
+
+//     for (let _idx in routePaths) {
+//       let coordinate = proj4(KTMProjection, EPSG4019).forward(routePaths[_idx]);
+      
+//       mntPaths[idx]['geometry']['paths'][0][_idx] = {
+//         lat: coordinate[1],
+//         lng: coordinate[0],
+//       }
+//     }
+//   }
+
+//   if (FID == undefined) {
+//     return res.json(mntPaths);
+//   } else {
+//     return res.json(mntPaths[FID]);
+//   }
+// });
+
+/** @todo 1. 등산 경로 서버로 요청 O
+ *        2. 받아온 경로를 하나의 배열로 합침.
+ *        3. 합친 배열로 각 FID의 전체 길이 계산.
+ *        4. 계산 된 값을 DB에 입력할 수 있는 양식으로 반환.
+ * */
+
 router.get('/paths/:mntCode/:FID?', function(req, res, next) {
   // TM Projectrion Setting (Korean)
   const KTMProjection = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
@@ -37,45 +94,59 @@ router.get('/paths/:mntCode/:FID?', function(req, res, next) {
   var FID = req.params.FID;
 
   // Hiking paths directory in local
-  var coordinateFilePath = `public/mountain/${mntCode}_geojson`;
+  let coordinateFilePath = `public/mountain/${mntCode}_geojson`;
+
   // Hiking path files path in local
-  var coordinateFiles = fs.readdirSync(coordinateFilePath);
-  
-  var mntFileName;
-  
-  for (let idx in coordinateFiles) {
-    let fileName = coordinateFiles[idx];
-
-    if (!fileName.match(/^PMNTN_SPOT_/)) {
-      mntFileName = fileName;    
+  fs.readdir(coordinateFilePath, (err, coordinateFiles) => {
+    if (coordinateFiles == undefined) {
+      return res.sendStatus(404);
     }
-  }
 
-  var coordinateFile = fs.readFileSync(`${coordinateFilePath}/${mntFileName}`, 'utf8');
+    coordinateFiles.forEach((fileName, idx, arr) => {
+      let mntFileName;
 
-  // Hiking paths in file
-  var mntPaths = JSON.parse(coordinateFile)['features'];
-
-  for (let idx in mntPaths) {
-    if (FID != undefined && FID != idx) continue;
-
-    let routePaths = mntPaths[idx]['geometry']['paths'][0];
-
-    for (let _idx in routePaths) {
-      let coordinate = proj4(KTMProjection, EPSG4019).forward(routePaths[_idx]);
-      
-      mntPaths[idx]['geometry']['paths'][0][_idx] = {
-        lat: coordinate[1],
-        lng: coordinate[0],
+      if (fileName.match(/^PMNTN_SPOT_/) || fileName.match(/^PMNTN_SAFE_SPOT_/)) {
+        return;
       }
-    }
-  }
+      mntFileName = fileName;
 
-  if (FID == undefined) {
-    return res.json(mntPaths);
-  } else {
-    return res.json(mntPaths[FID]);
-  }
+      fs.readFile(
+        `${coordinateFilePath}/${mntFileName}`, 
+        {encoding: 'utf8'}, 
+        (err, coordinateFile) => {
+          // Hiking paths in file
+          var mntPaths = JSON.parse(coordinateFile)['features'];
+
+          Promise.all(mntPaths.map((data) => {
+              let idx = data['attributes']['FID'];
+              if (FID != undefined && FID != idx) {
+                return;
+              }
+
+              var routePaths = data['geometry']['paths'][0];
+
+              routePaths.map((data, idx) => {
+                let coordinate = proj4(KTMProjection, EPSG4019).forward(data);
+                
+                data = {
+                  lat: coordinate[1],
+                  lng: coordinate[0],
+                }
+                routePaths[idx] = data;
+              });
+          }))
+          .then(() => {
+            if (FID == undefined) {
+              return res.json(mntPaths);
+            } else if (mntPaths[FID] != undefined) {
+              return res.json(mntPaths[FID]);
+            } else {
+              return res.sendStatus(404);
+            }
+          });
+      });
+    });
+  });
 });
 
 /**
