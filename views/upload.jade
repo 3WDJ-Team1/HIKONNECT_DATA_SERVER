@@ -1,0 +1,11 @@
+doctype html
+html
+    head
+        meta(chartset='utf-8')
+    body
+        form(action='profile' method='post' enctype="multipart/form-data")
+            input(type='file' name='userfile')
+            input(type='submit' value='유저프로필')
+        form(action='lm_pic' method='post' enctype="multipart/form-data")
+            input(type='file' name='location')
+            input(type='submit' value='위치메모')
