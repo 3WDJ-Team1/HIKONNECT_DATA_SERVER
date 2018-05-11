@@ -10,6 +10,7 @@ var index = require('./routes/index');
 var voices = require('./routes/voices');
 var mountain = require('./routes/mountains');
 var image = require('./routes/image');
+var location = require('./routes/location');
 var app = express();
 
 // view engine setup
@@ -29,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
  */
 app.use(cors());
 
+app.use('/location',location);
 app.use('/image', image);
 app.use('/', index);
 app.use('/voices', voices);

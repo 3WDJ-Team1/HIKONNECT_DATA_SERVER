@@ -12,13 +12,14 @@ var storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         if (file.fieldname == 'userfile' || file.fieldname == 'location')
-            cb(null, req.body.filename + ".jpg");
+            cb(null, file.originalname + ".jpg");
         else if (file.fieldname == 'radio')
             cb(null, req.body.filename + ".wav");
     }
 });
 var upload = multer({ storage: storage });
 router.post('/profile', upload.single('userfile'), function (req, res) {
+    console.log(req);
     res.send('Success');
 });
 
@@ -26,17 +27,18 @@ router.post('/lm_pic', upload.single('location'), function (req, res) {
     res.send('Success');
 });
 
-
 router.post('/radio', upload.single('radio'), function (req, res) {
     res.send('Success');
 });
 
 router.post('/getProfile', function (req, res) {
-    res.sendfile('C:\\Users\\송솔\\PhpstormProjects\\HIKONNECT_DATA_SERVER\\public\\images\\UserProfile\\' + req.query.userid + '.jpg');
+    console.log(req);
+    res.sendfile('public\\images\\UserProfile\\' + req.body.userid + '.jpg');
 });
 
-router.post('/getLocationPic', function (req, res) {
-    res.sendfile('C:\\Users\\송솔\\PhpstormProjects\\HIKONNECT_DATA_SERVER\\public\\images\\LocationMemo\\' + req.query.userid + '.jpg');
-});
+/*router.post('/getLocationPic', function (req, res) {
+    console.log(req);
+    res.download('public\\images\\LocationMemo\\' + req.body.userid + '.jpg');
+});*/
 
 module.exports = router;
