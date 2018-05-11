@@ -51,6 +51,7 @@ router.post('/regLocation', function (req, res) {
     });
     connection.query('select * from location_memo where created_at = ?', time, function (err, rows) {
         picture_name = `${rows[0]['no']}_${rows[0]['writer']}_${time}`;
+
         console.log(filename);
     });
 }, upload.single('location'));
