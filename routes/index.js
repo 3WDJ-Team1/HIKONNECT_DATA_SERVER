@@ -1,3 +1,6 @@
+/**
+ * 
+ */
 var express = require('express');
 var router = express.Router();
 var fs = require('fs');
@@ -12,10 +15,13 @@ router.get('/', function(req, res, next) {
 /**
  * @function      This function returns hiking route's coordinates converted from 
  *                TM projection to GRS80 Projection(degrees).
- *                HTTP request URL = host:3000/paths/{mntCode}/{FID}
+ *                HTTP request URL = host:3000/paths/{mntCode}/{fid}
  * 
- * @param String  req.params.mntCode   Mountain's serial code.
- * @param String  req.params.FID       Feature's ID.
+ * @param String  req.params.mntCode  Mountain's serial code.
+ * @param String  req.params.fid      Feature's ID.
+ * 
+ * @const String  KTM_PROJ            KTM Projection(Korean) Setting for converting.
+ * @const String  EPSG4019            GRS80 Projection setting for converting.  
  * 
  * @var   Array   coordinateFilePath  Coordinate file path in local storage.
  * @var   Array   coordinateFiles     Coordinate file list in local storage.
@@ -27,71 +33,15 @@ router.get('/', function(req, res, next) {
  * @return  null
  *          HTTP Response = String    The String is formatted by JSON syntax.
  */
-// router.get('/paths/:mntCode/:FID?', function(req, res, next) {
-//   // TM Projectrion Setting (Korean)
-//   const KTMProjection = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
-//   // GRS80 Projection Setting
-//   const EPSG4019 = '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs';
-
-//   var mntCode = req.params.mntCode;
-//   var FID = req.params.FID;
-
-//   // Hiking paths directory in local
-//   var coordinateFilePath = `public/mountain/${mntCode}_geojson`;
-//   // Hiking path files path in local
-//   var coordinateFiles = fs.readdirSync(coordinateFilePath);
-  
-//   var mntFileName;
-  
-//   for (let idx in coordinateFiles) {
-//     let fileName = coordinateFiles[idx];
-
-//     if (!fileName.match(/^PMNTN_SPOT_/)) {
-//       mntFileName = fileName;    
-//     }
-//   }
-
-//   var coordinateFile = fs.readFileSync(`${coordinateFilePath}/${mntFileName}`, 'utf8');
-
-//   // Hiking paths in file
-//   var mntPaths = JSON.parse(coordinateFile)['features'];
-
-//   for (let idx in mntPaths) {
-//     if (FID != undefined && FID != idx) continue;
-
-//     let routePaths = mntPaths[idx]['geometry']['paths'][0];
-
-//     for (let _idx in routePaths) {
-//       let coordinate = proj4(KTMProjection, EPSG4019).forward(routePaths[_idx]);
-      
-//       mntPaths[idx]['geometry']['paths'][0][_idx] = {
-//         lat: coordinate[1],
-//         lng: coordinate[0],
-//       }
-//     }
-//   }
-
-//   if (FID == undefined) {
-//     return res.json(mntPaths);
-//   } else {
-//     return res.json(mntPaths[FID]);
-//   }
-// });
-
-/** @todo 1. 등산 경로 서버로 요청 O
- *        2. 받아온 경로를 하나의 배열로 합침.
- *        3. 합친 배열로 각 FID의 전체 길이 계산.
- *        4. 계산 된 값을 DB에 입력할 수 있는 양식으로 반환.
- * */
-
-router.get('/paths/:mntCode/:FID?', function(req, res, next) {
+router.get('/paths/:mntCode/:fid?', function(req, res, next) {
   // TM Projectrion Setting (Korean)
-  const KTMProjection = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
+  const KTM_PROJ = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
+
   // GRS80 Projection Setting
   const EPSG4019 = '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs';
 
   var mntCode = req.params.mntCode;
-  var FID = req.params.FID;
+  var fid = req.params.fid;
 
   // Hiking paths directory in local
   let coordinateFilePath = `public/mountain/${mntCode}_geojson`;
@@ -118,15 +68,15 @@ router.get('/paths/:mntCode/:FID?', function(req, res, next) {
           var mntPaths = JSON.parse(coordinateFile)['features'];
 
           Promise.all(mntPaths.map((data) => {
-              let idx = data['attributes']['FID'];
-              if (FID != undefined && FID != idx) {
+              let idx = data['attributes']['fid'];
+              if (fid != undefined && fid != idx) {
                 return;
               }
 
               var routePaths = data['geometry']['paths'][0];
 
               routePaths.map((data, idx) => {
-                let coordinate = proj4(KTMProjection, EPSG4019).forward(data);
+                let coordinate = proj4(KTM_PROJ, EPSG4019).forward(data);
                 
                 data = {
                   lat: coordinate[1],
@@ -136,10 +86,10 @@ router.get('/paths/:mntCode/:FID?', function(req, res, next) {
               });
           }))
           .then(() => {
-            if (FID == undefined) {
+            if (fid == undefined) {
               return res.json(mntPaths);
-            } else if (mntPaths[FID] != undefined) {
-              return res.json(mntPaths[FID]);
+            } else if (mntPaths[fid] != undefined) {
+              return res.json(mntPaths[fid]);
             } else {
               return res.sendStatus(404);
             }
@@ -150,11 +100,160 @@ router.get('/paths/:mntCode/:FID?', function(req, res, next) {
 });
 
 /**
- * @function  This function returns important spot's coordinates converted from 
- *            TM projection to GRS80 Projection(degrees).
- *            HTTP request URL = host:3000/spots/{mntCode}/{FID}
+ * 
+ */
+router.get('/dummy/school', (req, res, next) => {
+  const DUMMY_DATA = [
+    {
+      "attributes" : {
+        "FID"        : 0,
+        "PMNTN_SN"   : 26719,
+        "MNTN_CODE"  : "999999999",
+        "MNTN_NM"    : "영진전문대학",
+        "PMNTN_NM"   : "본관",
+        "PMNTN_MAIN" : " ",
+        "PMNTN_LT"   : 0.01,
+        "PMNTN_DFFL" : "쉬움",
+        "PMNTN_UPPL" : 1,
+        "PMNTN_GODN" : 0,
+        "PMNTN_MTRQ" : "",
+        "PMNTN_CNRL" : " ",
+        "PMNTN_CLS_" : " ",
+        "PMNTN_RISK" : "",
+        "PMNTN_RECO" : " ",
+        "DATA_STDR_" : "2016-12-31",
+        "MNTN_ID"    : "999999999"
+      },
+      "geometry": {
+        "paths": [
+          [
+            {
+              "lat": 35.896343, 
+              "lng": 128.620824
+            },
+            {
+              "lat": 35.896178, 
+              "lng": 128.620832
+            },
+            {
+              "lat": 35.896047,
+              "lng": 128.620834
+            },
+            {
+              "lat": 35.895902,
+              "lng": 128.620858
+            },
+            {
+              "lat": 35.895864,
+              "lng": 128.621001
+            },
+            {
+              "lat": 35.895817,
+              "lng": 128.621191
+            },
+            {
+              "lat": 35.895773,
+              "lng": 128.621395
+            },
+            {
+              "lat": 35.895741, 
+              "lng": 128.621585
+            },
+            {
+              "lat": 35.895691,
+              "lng": 128.621760
+            },
+            {
+              "lat": 35.895860,
+              "lng": 128.621898
+            },
+            {
+              "lat": 35.896031,
+              "lng": 128.621848
+            },
+          ]
+        ]
+      }
+    },
+    {
+      "attributes" : {
+        "FID"        : 1,
+        "PMNTN_SN"   : 26719,
+        "MNTN_CODE"  : "999999999",
+        "MNTN_NM"    : "영진전문대학",
+        "PMNTN_NM"   : "본관",
+        "PMNTN_MAIN" : " ",
+        "PMNTN_LT"   : 0.01,
+        "PMNTN_DFFL" : "쉬움",
+        "PMNTN_UPPL" : 1,
+        "PMNTN_GODN" : 0,
+        "PMNTN_MTRQ" : "",
+        "PMNTN_CNRL" : " ",
+        "PMNTN_CLS_" : " ",
+        "PMNTN_RISK" : "",
+        "PMNTN_RECO" : " ",
+        "DATA_STDR_" : "2016-12-31",
+        "MNTN_ID"    : "999999999"
+      },
+      "geometry": {
+        "paths": [
+          [
+            {
+              "lat": 35.896031,
+              "lng": 128.621848
+            },
+            {
+              "lat": 35.896221, 
+              "lng": 128.622179
+            },
+            {
+              "lat": 35.896126,
+              "lng": 128.622312
+            },
+            {
+              "lat": 35.895993,
+              "lng": 128.622460
+            },
+            {
+              "lat": 35.895851,
+              "lng": 128.622609
+            },
+            {
+              "lat": 35.895750,
+              "lng": 128.622758
+            },
+            {
+              "lat": 35.895579,
+              "lng": 128.622948
+            },
+            {
+              "lat": 35.895471,
+              "lng": 128.623120
+            },
+            {
+              "lat": 35.895347,
+              "lng": 128.623326
+            },
+            {
+              "lat": 35.895249, 
+              "lng": 128.623576
+            },
+          ]
+        ]
+      }
+    }
+  ];
+
+  res.json(DUMMY_DATA);
+});
+
+/**
+ * @desc  This function returns important spot's coordinates converted from 
+ *        TM projection to GRS80 Projection(degrees).
+ *        HTTP request URL = host:3000/spots/{mntCode}/{fid}
+ * 
  * @param String req.params.mntCode   Mountain's serial code.
- * @param String req.params.FID       Feature's ID.
+ * @param String req.params.fid       Feature's ID.
  * 
  * @var   Array   coordinateFilePath  Coordinate file path in local storage.
  * @var   Array   coordinateFiles     Coordinate file list in local storage.
@@ -166,11 +265,12 @@ router.get('/paths/:mntCode/:FID?', function(req, res, next) {
  * @return  null
  *          HTTP Response = String    The String is formatted by JSON syntax.
  */
-router.get('/spots/:mntCode/:FID?', function(req, res, next) {
+router.get('/spots/:mntCode/:fid?', function(req, res, next) {
   var mntCode = req.params.mntCode;
-  var FID     = req.params.FID;
+  var fid     = req.params.fid;
 
   var coordinateFilePath = `public/mountain/${mntCode}_geojson`;
+
   // Hiking path files path in local
   var coordinateFiles = fs.readdirSync(coordinateFilePath);
   
@@ -186,16 +286,16 @@ router.get('/spots/:mntCode/:FID?', function(req, res, next) {
 
   var coordinateFile = JSON.parse(fs.readFileSync(`${coordinateFilePath}/${mntFileName}`, 'utf8'));
 
-  res.send(convert(coordinateFile['features'], FID));
+  res.send(convert(coordinateFile['features'], fid));
 });
 
 /**
  * @function      This function returns safe spot's coordinates converted from 
  *                TM projection to GRS80 Projection(degrees).
- *                HTTP request URL = host:3000/paths/{mntCode}/{FID}
+ *                HTTP request URL = host:3000/paths/{mntCode}/{fid}
  * 
  * @param String  req.params.mntCode   Mountain's serial code.
- * @param String  req.params.FID       Feature's ID.
+ * @param String  req.params.fid       Feature's ID.
  * 
  * @var   Array   coordinateFilePath  Coordinate file path in local storage.
  * @var   Array   coordinateFiles     Coordinate file list in local storage.
@@ -207,9 +307,9 @@ router.get('/spots/:mntCode/:FID?', function(req, res, next) {
  * @return  null
  *          HTTP Response = String    The String is formatted by JSON syntax.
  */
-router.get('/safe-spot/:mntCode/:FID?', function(req, res, next) {
+router.get('/safe-spot/:mntCode/:fid?', function(req, res, next) {
   var mntCode = req.params.mntCode;
-  var FID     = req.params.FID;
+  var fid     = req.params.fid;
 
   var coordinateFilePath = `public/mountain/${mntCode}_geojson`;
   // Hiking path files path in local
@@ -227,7 +327,7 @@ router.get('/safe-spot/:mntCode/:FID?', function(req, res, next) {
 
   var coordinateFile = JSON.parse(fs.readFileSync(`${coordinateFilePath}/${mntFileName}`, 'utf8'));
 
-  res.send(convert(coordinateFile['features'], FID));
+  res.send(convert(coordinateFile['features'], fid));
 });
 
 /**
@@ -239,27 +339,27 @@ router.get('/safe-spot/:mntCode/:FID?', function(req, res, next) {
  * @requires  proj4 (NPM Package)
  * 
  * @param     Array     features      Coordinate set provided by Korea Forest Service.
- * @param     Number    FID           Coordinate feature's ID in data set.
+ * @param     Number    fid           Coordinate feature's ID in data set.
  * 
- * @constant  String    KTMProjection K-TM projection = coordinate measure method that uses in Korea.
+ * @constant  String    KTM_PROJ      K-TM projection = coordinate measure method that uses in Korea.
  * @constant  String    EPSG4019      GRS80(Geodetic Reference System) https://en.wikipedia.org/wiki/GRS_80
  * 
  * @return    Array                   Converted coordinate set.
  */
-var convert = function(features, FID) {
+var convert = function(features, fid) {
   // KTM Projectrion Setting (Korean)
-  const KTMProjection = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
+  const KTM_PROJ = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
   // GRS80 Projection Setting
   const EPSG4019 = '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs';
 
   for (let idx in features) {
-    if (FID != undefined && FID != idx) continue;
+    if (fid != undefined && fid != idx) continue;
 
     let x = parseFloat(features[idx]['geometry']['x']);
     let y = parseFloat(features[idx]['geometry']['y']);
 
 
-    let convertedPosition = proj4(KTMProjection, EPSG4019).forward([x, y]);
+    let convertedPosition = proj4(KTM_PROJ, EPSG4019).forward([x, y]);
 
     features[idx]['geometry'] = {
       lat: convertedPosition[1],
@@ -267,10 +367,10 @@ var convert = function(features, FID) {
     };
   }
 
-  if (FID == undefined) {
+  if (fid == undefined) {
     return features;
   } else {
-    return features[FID];
+    return features[fid];
   }
 }
 
