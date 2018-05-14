@@ -69,9 +69,6 @@ router.get('/paths/:mntCode/:fid?', function(req, res, next) {
 
           Promise.all(mntPaths.map((data) => {
               let idx = data['attributes']['fid'];
-              if (fid != undefined && fid != idx) {
-                return;
-              }
 
               var routePaths = data['geometry']['paths'][0];
 
