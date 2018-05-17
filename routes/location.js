@@ -7,18 +7,6 @@ var multiparty   = require('multiparty');
 require('date-utils');
 
 var picture_name = 'basic';
-var storage      = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/images/LocationMemo/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, picture_name + ".jpg");
-    }
-});
-
-var upload = multer({
-    storage: storage
-});
 
 // DB Connect
 var connection = mysql.createConnection({
