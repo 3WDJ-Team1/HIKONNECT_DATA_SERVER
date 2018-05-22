@@ -109,7 +109,7 @@ router.get('/dummy/school', (req, res, next) => {
         "MNTN_NM"    : "영진전문대학",
         "PMNTN_NM"   : "본관",
         "PMNTN_MAIN" : " ",
-        "PMNTN_LT"   : 0.7,
+        "PMNTN_LT"   : 0.72,
         "PMNTN_DFFL" : "쉬움",
         "PMNTN_UPPL" : 1,
         "PMNTN_GODN" : 0,
