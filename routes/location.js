@@ -51,6 +51,7 @@ router.post('/regLocation',function (req, res) {
                 console.log('Success');
             });
         });
+        connection.end();
     });
     // Get current time.
     newDate = new Date();
@@ -61,5 +62,4 @@ router.post('/getLocationPic', function (req, res) {
     console.log(req);
     res.download('public\\images\\LocationMemo\\' + req.body.userid + '.jpg');
 });
-
 module.exports = router;

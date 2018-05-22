@@ -47,6 +47,7 @@ router.post('/announce', upload.single('announce'), function (req, res) {
         });
     });
     res.send('Success');
+    connection.end();
 });
 
 
