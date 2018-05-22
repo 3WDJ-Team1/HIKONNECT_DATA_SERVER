@@ -7,18 +7,6 @@ var multiparty   = require('multiparty');
 require('date-utils');
 
 var picture_name = 'basic';
-var storage      = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/images/LocationMemo/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, picture_name + ".jpg");
-    }
-});
-
-var upload = multer({
-    storage: storage
-});
 
 // DB Connect
 var connection = mysql.createConnection({
@@ -63,6 +51,7 @@ router.post('/regLocation',function (req, res) {
                 console.log('Success');
             });
         });
+        connection.end();
     });
     // Get current time.
     newDate = new Date();
@@ -73,5 +62,4 @@ router.post('/getLocationPic', function (req, res) {
     console.log(req);
     res.download('public\\images\\LocationMemo\\' + req.body.userid + '.jpg');
 });
-
 module.exports = router;
