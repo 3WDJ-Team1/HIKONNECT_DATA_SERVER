@@ -16,7 +16,6 @@ var connection = mysql.createConnection({
     port     : '3306',
     database : 'hikonnect'
 });
-connection.connect();
 
 router.post('/regLocation',function (req, res) {
     var data = {};
@@ -25,6 +24,9 @@ router.post('/regLocation',function (req, res) {
         uploadDir: 'public/images/LocationMemo'
     });
     var fields = [];
+
+    connection.connect();
+
     form.parse(req, function (err, fields, files) {
         data = {
             'schedule_no'       : fields.schedule_no[0],
@@ -43,6 +45,8 @@ router.post('/regLocation',function (req, res) {
                 res.send('Success');
             else
                 console.log(err);
+
+            connection.end();
         });
         connection.query('select * from location_memo where created_at = ?', time, function (err, rows) {
             var filename = `${rows[0]['no']}_${rows[0]['writer']}`;
@@ -50,8 +54,9 @@ router.post('/regLocation',function (req, res) {
                 if (err) throw err;
                 console.log('Success');
             });
+            
+            connection.end();
         });
-        connection.end();
     });
     // Get current time.
     newDate = new Date();

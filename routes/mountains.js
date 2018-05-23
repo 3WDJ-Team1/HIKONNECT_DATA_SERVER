@@ -98,6 +98,8 @@ router.get('/query/distanceOfFid', (req, res, next) => {
                 } else {
                     console.log('Error: ' + err);
                 }
+
+                connection.end();
             });
         });
     })().then((fidSet) => {

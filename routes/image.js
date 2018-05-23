@@ -31,7 +31,6 @@ var connection = mysql.createConnection({
     port     : '3306',
     database : 'hikonnect'
 });
-connection.connect();
 
 router.post('/radio', upload.single('radio'), function (req, res) {
     res.send('Success');
@@ -39,15 +38,18 @@ router.post('/radio', upload.single('radio'), function (req, res) {
 
 router.post('/announce', upload.single('announce'), function (req, res) {
 
+    connection.connect();
+
     connection.query('select * from announce order by no desc limit 1', function (err, rows) {
         var filename = `${rows[0]['no']}`;
         fs.rename(req.file.path, 'public/images/Announce/' + filename + '.jpg', function (err) {
             if (err) throw err;
             console.log('Success');
         });
+
+        connection.end();
     });
     res.send('Success');
-    connection.end();
 });
 
 
