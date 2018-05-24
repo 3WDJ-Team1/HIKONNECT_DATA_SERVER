@@ -79,7 +79,6 @@ router.get('/query/distanceOfFid', (req, res, next) => {
         password : process.env.DB_PASSWORD,
         database : process.env.DB_DATABASE,
     });
-    connection.connect();
 
     (function() {
         return new Promise((resolve, reject) => {
@@ -98,8 +97,6 @@ router.get('/query/distanceOfFid', (req, res, next) => {
                 } else {
                     console.log('Error: ' + err);
                 }
-
-                connection.end();
             });
         });
     })().then((fidSet) => {
