@@ -38,7 +38,9 @@ router.post('/radio', upload.single('radio'), function (req, res) {
 
 router.post('/announce', upload.single('announce'), function (req, res) {
 
-    connection.connect();
+    if (connection.state === 'disconnected') {
+        connection.connect();
+    }
 
     connection.query('select * from announce order by no desc limit 1', function (err, rows) {
         var filename = `${rows[0]['no']}`;
