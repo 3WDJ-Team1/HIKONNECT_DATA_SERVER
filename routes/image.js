@@ -14,7 +14,7 @@ var storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         if (file.fieldname == 'userfile' || file.fieldname == 'announce')
-            cb(null, file.originalname + ".jpg");
+            cb(null, file.originalname);
         else if (file.fieldname == 'radio')
             cb(null, req.body.filename + ".wav");
     }
