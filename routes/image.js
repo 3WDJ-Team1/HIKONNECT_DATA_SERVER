@@ -39,7 +39,7 @@ router.post('/radio', upload.single('radio'), function (req, res) {
 router.post('/announce', upload.single('announce'), function (req, res) {
     connection.query('select * from announce where picture="true" order by no desc limit 1', function (err, rows) {
         var filename = `${rows[0]['no']}`;
-        if (fs.existsSync('public/images/Announce/' + filename + '.jpg') == false) {
+        if (filename == req.file.originalname && fs.existsSync('public/images/Announce/' + filename + '.jpg') == false) {
             fs.rename(req.file.path, 'public/images/Announce/' + filename + '.jpg', function (err) {
                 if (err) throw err;
             });
