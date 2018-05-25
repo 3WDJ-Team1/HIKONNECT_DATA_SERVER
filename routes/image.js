@@ -37,13 +37,16 @@ router.post('/radio', upload.single('radio'), function (req, res) {
 });
 
 router.post('/announce', upload.single('announce'), function (req, res) {
-
     connection.query('select * from announce order by no desc limit 1', function (err, rows) {
         var filename = `${rows[0]['no']}`;
-        fs.rename(req.file.path, 'public/images/Announce/' + filename + '.jpg', function (err) {
-            if (err) throw err;
-            console.log('Success');
-        });
+        if (fs.existsSync('public/images/Announce/' + filename + '.jpg') == true) {
+            res.send('Success');
+        } else {
+            fs.rename(req.file.path, 'public/images/Announce/' + filename + '.jpg', function (err) {
+                if (err) throw err;
+                console.log('Success');
+            });
+        }
     });
     res.send('Success');
 });
