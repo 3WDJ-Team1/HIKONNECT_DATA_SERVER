@@ -46,6 +46,7 @@ router.post('/announce', upload.single('announce'), function (req, res) {
             console.log('true');
         } else {
             res.send('Success');
+            console.log('Success');
         }
     });
 });
