@@ -45,7 +45,7 @@ router.post('/announce', upload.single('announce'), function (req, res) {
             });
             console.log('true');
         } else {
-            console.log('Success');
+            console.log('됐다');
         }
     });
 });
