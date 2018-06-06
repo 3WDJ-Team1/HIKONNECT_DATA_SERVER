@@ -88,13 +88,15 @@ var updatePosition = function(argMemberNo) {
 
         let randVal = Math.round(Math.random() * 10);
 
-        let lat = posistionSet[randVal].lat;
-        let lng = posistionSet[randVal].lng;
+        let lat         = posistionSet[randVal].lat;
+        let lng         = posistionSet[randVal].lng;
+        let distance    = Math.round(Math.random() * 100) / 10;
 
         let queryString = `
         UPDATE  schedule_member
         SET     latitude    = ${lat},
-                longitude   = ${lng}
+                longitude   = ${lng},
+                distance    = ${distance}
         WHERE member_no = ${this.memberNo}
         ;`;
 
