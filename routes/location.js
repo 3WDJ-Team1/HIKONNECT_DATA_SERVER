@@ -28,7 +28,6 @@ router.post('/regLocation',function (req, res) {
     form.parse(req, function (err, fields, files) {
         data = {
             'schedule_no'       : fields.schedule_no[0],
-            'hiking_group'      : fields.hiking_group[0],
             'title'             : fields.title[0],
             'content'           : fields.content[0],
             'writer'            : fields.writer[0],
