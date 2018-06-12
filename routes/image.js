@@ -21,7 +21,8 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 router.post('/profile', upload.single('userfile'), function (req, res) {
-    res.send('Success');
+    if (fs.existsSync('public/images/UserProfile/' + req.file.originalname) == true)
+        res.send('Success');
 });
 
 var connection = mysql.createConnection({
