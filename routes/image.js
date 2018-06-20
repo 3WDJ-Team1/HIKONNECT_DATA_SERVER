@@ -49,6 +49,9 @@ router.post('/announce', upload.single('announce'), function (req, res) {
             res.send('Success');
             console.log('Success');
         }
+        connection.end(function () {
+            console.log('database close');
+        })
     });
 });
 

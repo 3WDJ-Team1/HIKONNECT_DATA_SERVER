@@ -72,6 +72,9 @@ router.post('/regLocation',function (req, res) {
                     console.log('Success');
                 });
             });
+            connection.end(function () {
+                console.log('database close');
+            })
         });
     }
 });
