@@ -19,4 +19,3 @@ conn.query(sql, params, function (err,rows,fields) {
         }
     }
 });
-conn.end();
